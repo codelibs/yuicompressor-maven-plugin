@@ -185,7 +185,7 @@ public class YuiCompressorMojo extends MojoSupport {
     }
 
     @Override
-    protected void processFile(final SourceFile src) throws IOException, MojoExecutionException {
+    protected void processFile(final SourceFile src) throws IOException {
         final File inFile = src.toFile();
 
         if (buildContext.isIncremental()) {
@@ -220,8 +220,7 @@ public class YuiCompressorMojo extends MojoSupport {
         compressFile(src, inFile, outFile);
     }
 
-    private void compressFile(final SourceFile src, final File inFile, final File outFile)
-            throws IOException, MojoExecutionException {
+    private void compressFile(final SourceFile src, final File inFile, final File outFile) throws IOException {
         final File outFileTmp = new File(outFile.getAbsolutePath() + ".tmp");
         Files.deleteIfExists(outFileTmp.toPath());
 
@@ -231,7 +230,7 @@ public class YuiCompressorMojo extends MojoSupport {
              OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outFileTmp), charset)) {
 
             if (!outFile.getParentFile().exists() && !outFile.getParentFile().mkdirs()) {
-                throw new MojoExecutionException("Cannot create output directory: " + outFile.getParentFile());
+                throw new IOException("Cannot create output directory: " + outFile.getParentFile());
             }
 
             if (nocompress) {
@@ -257,8 +256,7 @@ public class YuiCompressorMojo extends MojoSupport {
             final CssCompressor compressor = new CssCompressor(in);
             compressor.compress(out, linebreakpos);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                    "Invalid characters in CSS file. Ensure the CSS file does not contain '$'", e);
+            throw new IllegalArgumentException("Invalid characters or malformed syntax in CSS file", e);
         }
     }
 
@@ -330,17 +328,12 @@ public class YuiCompressorMojo extends MojoSupport {
 
     private GZIPOutputStream createGzipOutputStream(final File gzipped) throws IOException {
         final OutputStream baseOut = buildContext.newFileOutputStream(gzipped);
-        final GZIPOutputStream gzipOut = new GZIPOutputStream(baseOut);
-        // Set compression level using reflection to access protected field
-        try {
-            final java.lang.reflect.Field defField = GZIPOutputStream.class.getDeclaredField("def");
-            defField.setAccessible(true);
-            final Deflater def = (Deflater) defField.get(gzipOut);
-            def.setLevel(level);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            getLog().warn("Could not set GZIP compression level: " + e.getMessage());
-        }
-        return gzipOut;
+        // Use anonymous class to set compression level without reflection
+        return new GZIPOutputStream(baseOut) {
+            {
+                def.setLevel(level);
+            }
+        };
     }
 
     protected long ratioOfSize(final File file100, final File fileX) {

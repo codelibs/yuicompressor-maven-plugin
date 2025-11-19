@@ -153,7 +153,7 @@ public abstract class MojoSupport extends AbstractMojo {
             if (failOnWarning && (jsErrorReporter.getWarningCnt() > 0)) {
                 throw new MojoFailureException("Warnings detected and failOnWarning is enabled (see log)");
             }
-        } catch (RuntimeException | MojoFailureException | MojoExecutionException exc) {
+        } catch (RuntimeException | MojoFailureException exc) {
             throw exc;
         } catch (Exception exc) {
             throw new MojoExecutionException("Execution failed: " + exc.getMessage(), exc);

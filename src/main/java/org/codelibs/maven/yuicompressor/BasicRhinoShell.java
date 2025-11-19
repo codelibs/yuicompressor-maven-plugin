@@ -141,7 +141,8 @@ public class BasicRhinoShell extends ScriptableObject {
         final StringBuilder msg = new StringBuilder();
         msg.append("Invalid argument: \"").append(arg).append("\"\n");
         msg.append("Valid arguments are:\n");
-        msg.append("-version 100|110|120|130|140|150|160|170");
+        msg.append("-version <n> (100=JS 1.0, 110=JS 1.1, 120=JS 1.2, 130=JS 1.3, ");
+        msg.append("140=JS 1.4, 150=JS 1.5, 160=JS 1.6, 170=JS 1.7)");
         throw new IllegalArgumentException(msg.toString());
     }
 

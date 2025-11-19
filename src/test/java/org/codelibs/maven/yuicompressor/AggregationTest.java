@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -24,7 +25,9 @@ public class AggregationTest {
 
     @Before
     public void setUp() throws IOException {
-        tempDir = Files.createTempDirectory(this.getClass().getSimpleName()).toFile();
+        // Use UUID to ensure uniqueness across concurrent test runs
+        final String uniquePrefix = this.getClass().getSimpleName() + "-" + UUID.randomUUID();
+        tempDir = Files.createTempDirectory(uniquePrefix).toFile();
     }
 
     @After
