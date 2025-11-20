@@ -122,8 +122,16 @@ public class Aggregation {
             inputDir = output.getParentFile();
         }
         inputDir = inputDir.getCanonicalFile();
+
+        // Create directory if it doesn't exist yet (may happen during aggregation before files are processed)
+        if (!inputDir.exists()) {
+            if (!inputDir.mkdirs()) {
+                throw new IOException("Failed to create input directory: " + inputDir);
+            }
+        }
+
         if (!inputDir.isDirectory()) {
-            throw new IOException("Input directory not found or not a directory: " + inputDir);
+            throw new IOException("Input directory path exists but is not a directory: " + inputDir);
         }
     }
 
