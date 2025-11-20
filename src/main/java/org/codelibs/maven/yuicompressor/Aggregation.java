@@ -163,7 +163,7 @@ public class Aggregation {
         if (include.contains("*")) {
             addWildcardFiles(include, includedFiles, previouslyIncludedFiles);
         } else {
-            addSingleFile(include, includedFiles);
+            addSingleFile(include, includedFiles, previouslyIncludedFiles);
         }
     }
 
@@ -191,6 +191,18 @@ public class Aggregation {
             file = new File(inputDir, include);
         }
         if (!includedFiles.contains(file)) {
+            includedFiles.add(file);
+        }
+    }
+
+    private void addSingleFile(final String include, final List<File> includedFiles,
+                               final Collection<File> previouslyIncludedFiles) {
+        File file = new File(include);
+        if (!file.isAbsolute()) {
+            file = new File(inputDir, include);
+        }
+        if (!includedFiles.contains(file) &&
+                (previouslyIncludedFiles == null || !previouslyIncludedFiles.contains(file))) {
             includedFiles.add(file);
         }
     }
