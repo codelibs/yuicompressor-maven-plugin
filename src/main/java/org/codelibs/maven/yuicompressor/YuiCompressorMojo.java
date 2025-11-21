@@ -343,6 +343,10 @@ public class YuiCompressorMojo extends MojoSupport {
     }
 
     private boolean isMinifiedFile(final File inFile) {
+        // When suffix is empty (nosuffix=true), we cannot determine if a file is minified by its name
+        if (suffix == null || suffix.isEmpty()) {
+            return false;
+        }
         final String filename = inFile.getName().toLowerCase();
         return filename.endsWith(suffix + ".js") || filename.endsWith(suffix + ".css");
     }
