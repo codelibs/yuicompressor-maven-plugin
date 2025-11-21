@@ -187,11 +187,28 @@ public class Aggregation {
 
         for (final String rpath : rpaths) {
             final File file = new File(scanner.getBasedir(), rpath);
-            if (!includedFiles.contains(file) &&
-                    (previouslyIncludedFiles == null || !previouslyIncludedFiles.contains(file))) {
+            if (!includedFiles.contains(file) && !isInPreviouslyIncluded(file, previouslyIncludedFiles)) {
                 includedFiles.add(file);
             }
         }
+    }
+
+    /**
+     * Check if a file is in the previously included files collection.
+     * Uses canonical paths for comparison to handle path normalization differences.
+     */
+    private boolean isInPreviouslyIncluded(final File file, final Collection<File> previouslyIncludedFiles) throws IOException {
+        if (previouslyIncludedFiles == null || previouslyIncludedFiles.isEmpty()) {
+            return false;
+        }
+
+        final String canonicalPath = file.getCanonicalPath();
+        for (final File prevFile : previouslyIncludedFiles) {
+            if (canonicalPath.equals(prevFile.getCanonicalPath())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void addSingleFile(final String include, final List<File> includedFiles) {
