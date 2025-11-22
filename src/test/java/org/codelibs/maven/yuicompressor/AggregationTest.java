@@ -240,7 +240,8 @@ public class AggregationTest {
         // f1 was in previouslyIncluded so it is not included
         final List<File> result = target.run(previouslyIncluded, buildContext);
         assertEquals(1, result.size());
-        assertEquals(f2, result.get(0));
+        // Compare canonical paths to handle platform-specific path differences (e.g., Windows 8.3 short names)
+        assertEquals(f2.getCanonicalPath(), result.get(0).getCanonicalPath());
         assertTrue(target.output.exists());
         assertEquals(readFile(f2), readFile(target.output));
     }

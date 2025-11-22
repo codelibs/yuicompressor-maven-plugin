@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/codelibs/yuicompressor-maven-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/codelibs/yuicompressor-maven-plugin/actions/workflows/ci.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.codelibs.maven/yuicompressor-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.codelibs.maven/yuicompressor-maven-plugin)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](https://unlicense.org/)
 
 ## Overview
 
@@ -186,9 +186,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-The original project was in the public domain (Unlicense). This fork maintains compatibility while using the Apache License 2.0.
+This project is released into the public domain under [The Unlicense](https://unlicense.org/).
 
 ## Links
 
