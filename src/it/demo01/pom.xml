@@ -26,6 +26,9 @@
   <properties>
     <value.rf01>rf01</value.rf01>
     <value.rf02>rf02</value.rf02>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <build>
     <finalName>yuicompressor-maven-plugin-demo</finalName>
@@ -101,6 +104,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
+        <version>3.4.0</version>
         <configuration>
           <warSourceExcludes>**/toAggregateAndRemove/**</warSourceExcludes>
         </configuration>

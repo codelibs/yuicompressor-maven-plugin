@@ -224,14 +224,15 @@ public class YuiCompressorMojo extends MojoSupport {
         final File outFileTmp = new File(outFile.getAbsolutePath() + ".tmp");
         Files.deleteIfExists(outFileTmp.toPath());
 
+        // Create output directory before opening output stream
+        if (!outFile.getParentFile().exists() && !outFile.getParentFile().mkdirs()) {
+            throw new IOException("Cannot create output directory: " + outFile.getParentFile());
+        }
+
         final Charset charset = Charset.forName(encoding);
 
         try (InputStreamReader in = new InputStreamReader(new FileInputStream(inFile), charset);
              OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outFileTmp), charset)) {
-
-            if (!outFile.getParentFile().exists() && !outFile.getParentFile().mkdirs()) {
-                throw new IOException("Cannot create output directory: " + outFile.getParentFile());
-            }
 
             if (nocompress) {
                 getLog().info("Compression disabled, copying: " + inFile.getName());
@@ -352,6 +353,10 @@ public class YuiCompressorMojo extends MojoSupport {
     }
 
     private static boolean minifiedFileExistsInSource(final File source, final File dest) {
+        // If source and dest have the same name, don't skip (this happens with nosuffix=true)
+        if (source.getName().equals(dest.getName())) {
+            return false;
+        }
         final String parent = source.getParent();
         final String destFilename = dest.getName();
         final File file = new File(parent, destFilename);
