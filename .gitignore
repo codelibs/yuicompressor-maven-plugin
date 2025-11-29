@@ -1,43 +1,29 @@
-# use glob syntax.
-syntax: glob
-*.ser
-*.class
-*~
-*.bak
-*.off
-*.old
+# Build output
+target/
 
-# eclipse conf file
-.settings
+# IDE - Eclipse
+.settings/
 .classpath
 .project
-.manager
 
-# idea
+# IDE - IntelliJ IDEA
 *.iml
 *.iws
 *.ipr
-.idea
+.idea/
 
-# building
-target
-build
-null
-tmp*
-temp
-dist
-test-output
-build.log
+# IDE - VS Code
+.vscode/
 
-# other scm
-.svn
-.CVS
-.hg*
+# OS files
+.DS_Store
+Thumbs.db
+*~
+*.bak
 
-# switch to regexp syntax.
-#  syntax: regexp
-#  ^\.pc/
+# Maven
+pom.xml.releaseBackup
+release.properties
 
-
-/pom.xml.releaseBackup
-/release.properties
+# Serena
+.serena/
