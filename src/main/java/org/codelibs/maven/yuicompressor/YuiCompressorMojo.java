@@ -231,20 +231,33 @@ public class YuiCompressorMojo extends MojoSupport {
 
         final Charset charset = Charset.forName(encoding);
 
-        try (InputStreamReader in = new InputStreamReader(new FileInputStream(inFile), charset);
-             OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outFileTmp), charset)) {
+        boolean compressed = false;
+        try {
+            try (InputStreamReader in = new InputStreamReader(new FileInputStream(inFile), charset);
+                 OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outFileTmp), charset)) {
 
-            if (nocompress) {
-                getLog().info("Compression disabled, copying: " + inFile.getName());
-                in.transferTo(out);
-            } else if (".js".equalsIgnoreCase(src.getExtension())) {
-                compressJavaScript(in, out);
-            } else if (".css".equalsIgnoreCase(src.getExtension())) {
-                compressCss(in, out);
+                if (nocompress) {
+                    getLog().info("Compression disabled, copying: " + inFile.getName());
+                    in.transferTo(out);
+                } else if (".js".equalsIgnoreCase(src.getExtension())) {
+                    compressJavaScript(in, out);
+                } else if (".css".equalsIgnoreCase(src.getExtension())) {
+                    compressCss(in, out);
+                }
+            }
+
+            finalizeOutput(inFile, outFile, outFileTmp);
+            compressed = true;
+        } finally {
+            // A compressor that throws - a JavaScript file this Rhino cannot parse
+            // is the usual way - leaves a half-written ".tmp" inside the output
+            // tree. The build fails, but the file stays: later builds do not clean
+            // it (the deleteIfExists above only runs when this same source is
+            // compressed again), so it survives into the packaged artifact.
+            if (!compressed) {
+                Files.deleteIfExists(outFileTmp.toPath());
             }
         }
-
-        finalizeOutput(inFile, outFile, outFileTmp);
     }
 
     private void compressJavaScript(final InputStreamReader in, final OutputStreamWriter out) throws IOException {
