@@ -212,7 +212,15 @@ public class YuiCompressorMojo extends MojoSupport {
             return;
         }
 
-        if (!force && outFile.exists() && (outFile.lastModified() > inFile.lastModified())) {
+        // The check means "a previous run already compressed this input". With a
+        // suffix the output has a name only this plugin writes, so a newer output
+        // really is one. Without one the output is <destination>/<same name>, which
+        // maven-resources-plugin has just written in this same build with a fresh
+        // timestamp - so the check fired on every file and compression was skipped
+        // silently, shipping the raw sources with BUILD SUCCESS. Nothing here can
+        // tell that copy from a real previous output, so with nosuffix the file is
+        // always compressed.
+        if (!force && !suffix.isEmpty() && outFile.exists() && (outFile.lastModified() > inFile.lastModified())) {
             getLog().info("Output file is newer than input, skipping: " + outFile);
             return;
         }
@@ -243,6 +251,14 @@ public class YuiCompressorMojo extends MojoSupport {
                     compressJavaScript(in, out);
                 } else if (".css".equalsIgnoreCase(src.getExtension())) {
                     compressCss(in, out);
+                } else {
+                    // Reachable through a custom <includes>. There used to be no else,
+                    // so nothing was written and the empty temp file was moved over the
+                    // destination - and the useSmallestFile guard compares input length
+                    // against output length, which an empty output can never satisfy, so
+                    // it could not catch it either. Copying keeps the file intact.
+                    getLog().info("No compressor for " + src.getExtension() + ", copying: " + inFile.getName());
+                    in.transferTo(out);
                 }
             }
 
