@@ -163,6 +163,21 @@
         <artifactId>maven-plugin-plugin</artifactId>
         <version>3.15.2</version>
       </plugin>
+      <!-- Maven Central rejects a deployment without a sources jar. This was
+           removed once on the premise that a codelibs-parent POM supplied it,
+           but this project has no <parent>, so nothing did. -->
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.4.0</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.12.0</version>
