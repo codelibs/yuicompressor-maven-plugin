@@ -1,195 +1,223 @@
 # YUI Compressor Maven Plugin
 
 [![CI](https://github.com/codelibs/yuicompressor-maven-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/codelibs/yuicompressor-maven-plugin/actions/workflows/ci.yml)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.codelibs.maven/yuicompressor-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.codelibs.maven/yuicompressor-maven-plugin)
-[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](https://unlicense.org/)
+[![Maven Central](https://img.shields.io/maven-central/v/org.codelibs.maven/yuicompressor-maven-plugin?label=Maven%20Central)](https://central.sonatype.com/artifact/org.codelibs.maven/yuicompressor-maven-plugin)
+[![License](https://img.shields.io/badge/license-Unlicense-blue)](https://unlicense.org/)
 
-## Overview
+Maven plugin that compresses (minifies, obfuscates and aggregates) JavaScript and CSS
+files using [YUI Compressor](https://github.com/codelibs/yuicompressor), and validates
+JavaScript files with JSLint.
 
-Maven plugin to compress (minify/obfuscate/aggregate) JavaScript and CSS files using [YUI Compressor](http://yui.github.io/yuicompressor/).
-
-This project is a fork of [net.alchim31.maven:yuicompressor-maven-plugin](https://github.com/davidB/yuicompressor-maven-plugin) maintained by the [CodeLibs Project](https://www.codelibs.org/) for continued development and modern Maven support.
-
-## Features
-
-- **JavaScript Compression**: Minification and obfuscation using YUI Compressor
-- **CSS Compression**: Minification of CSS files
-- **JSLint Integration**: Validate JavaScript files during build
-- **File Aggregation**: Concatenate multiple files before or after compression
-- **GZIP Support**: Automatically create gzipped versions
-- **Incremental Builds**: IDE integration with M2E incremental build support
-- **Selective Compression**: Skip already-minified files
-- **Compression Statistics**: Optional reporting of compression ratios
+This project is a fork of
+[net.alchim31.maven:yuicompressor-maven-plugin](https://github.com/davidB/yuicompressor-maven-plugin),
+maintained by the [CodeLibs Project](https://www.codelibs.org/) for continued
+development and modern Maven support. It is published as
+`org.codelibs.maven:yuicompressor-maven-plugin` and builds on
+`org.codelibs:yuicompressor` 2.4.11.
 
 ## Requirements
 
-- Maven 3.8.8 or later
 - Java 11 or later
+- Maven 3.8.1 or later
 
-## Usage
+## Getting Started
 
-### Basic Configuration
-
-Add the plugin to your `pom.xml`:
+Add the plugin to the `build` section of your `pom.xml`:
 
 ```xml
 <build>
-    <plugins>
-        <plugin>
-            <groupId>org.codelibs.maven</groupId>
-            <artifactId>yuicompressor-maven-plugin</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>compress</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
-    </plugins>
+  <plugins>
+    <plugin>
+      <groupId>org.codelibs.maven</groupId>
+      <artifactId>yuicompressor-maven-plugin</artifactId>
+      <version>2.0.1</version>
+      <executions>
+        <execution>
+          <goals>
+            <goal>compress</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
 </build>
 ```
 
-### Configuration Options
+By default the `compress` goal picks up every `**/*.js` and `**/*.css` file under
+`src/main/js`, the project resource directories and `src/main/webapp`, and writes the
+compressed copy into the matching output directory (`target/classes`, or the exploded
+web application for `src/main/webapp`) with a `-min` suffix: `app.js` becomes
+`app-min.js`.
 
-#### Common Parameters
+## Goals
+
+| Goal | Default phase | Description |
+|------|---------------|-------------|
+| `compress` | `process-resources` | Compresses JavaScript and CSS files, and optionally aggregates and gzips them. |
+| `jslint` | `process-resources` | Checks JavaScript files with JSLint. |
+
+Both goals are thread-safe and support incremental builds in Eclipse through the
+m2e `BuildContext` API.
+
+## Configuration
+
+### Source selection
+
+These parameters are shared by both goals.
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `encoding` | UTF-8 | File encoding |
-| `suffix` | -min | Output filename suffix |
-| `nosuffix` | false | Skip suffix addition |
-| `linebreakpos` | -1 | Line break position |
-| `force` | false | Force recompression |
-| `gzip` | false | Create gzipped versions |
-| `statistics` | true | Show compression statistics |
+| `sourceDirectory` | `${project.build.sourceDirectory}/../js` | Additional JavaScript source directory, for projects laid out as `src/main/js`. |
+| `warSourceDirectory` | `${basedir}/src/main/webapp` | Web application source directory. |
+| `webappDirectory` | `${project.build.directory}/${project.build.finalName}` | Directory the web application is built into. |
+| `outputDirectory` | `${project.build.outputDirectory}` | Directory the processed files are written to. |
+| `includes` | `**/*.js`, `**/*.css` (`compress`); `**/*.js` (`jslint`) | Include patterns. Replaces the defaults when set. |
+| `excludes` | none | Additional exclude patterns. |
+| `excludeResources` | `false` | Skip files under the project resource directories. |
+| `excludeWarSourceDirectory` | `false` | Skip files under `warSourceDirectory`. |
+| `useProcessedResources` | `false` | Read from the processed resources instead of the source resources. |
+| `skip` | `false` | Skip execution entirely (`maven.yuicompressor.skip`). |
+| `jswarn` | `true` | Report possible problems found in JavaScript (`maven.yuicompressor.jswarn`). |
+| `failOnWarning` | `false` | Fail the build on warnings. Implies `jswarn` (`maven.yuicompressor.failOnWarning`). |
 
-#### JavaScript-Specific Parameters
+### `compress` goal
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `nocompress` | false | Skip compression (copy only) |
-| `nomunge` | false | Minify only, no obfuscation |
-| `preserveAllSemiColons` | false | Keep unnecessary semicolons |
-| `disableOptimizations` | false | Disable micro optimizations |
-| `jswarn` | true | Display JavaScript warnings |
+| `encoding` | `UTF-8` | Character set used to read the input files (`file.encoding`). |
+| `suffix` | `-min` | Suffix appended to the output file name (`maven.yuicompressor.suffix`). |
+| `nosuffix` | `false` | Write the output over the same file name, with no suffix (`maven.yuicompressor.nosuffix`). |
+| `linebreakpos` | `-1` | Insert a line break after the given column. `-1` never breaks (`maven.yuicompressor.linebreakpos`). |
+| `force` | `false` | Compress even when the output is newer than the source (`maven.yuicompressor.force`). |
+| `gzip` | `false` | Also write a `.gz` copy of each compressed file (`maven.yuicompressor.gzip`). |
+| `level` | `9` | GZIP compression level, 0-9 (`maven.yuicompressor.level`). |
+| `statistics` | `true` | Log the compression ratio of each file and the total (`maven.yuicompressor.statistics`). |
+| `useSmallestFile` | `true` | Keep the original when compression makes the file larger (`maven.yuicompressor.useSmallestFile`). |
+| `aggregations` | none | Aggregations to run. See [File aggregation](#file-aggregation). |
+| `preProcessAggregates` | `false` | Aggregate before compressing instead of after (`maven.yuicompressor.preProcessAggregates`). |
 
-### Examples
+JavaScript-only parameters:
 
-#### Compress with Custom Suffix
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `nocompress` | `false` | Copy the file without compressing it (`maven.yuicompressor.nocompress`). |
+| `nomunge` | `false` | Minify only; do not obfuscate local symbols (`maven.yuicompressor.nomunge`). |
+| `preserveAllSemiColons` | `false` | Accepted and ignored by YUI Compressor 2.4.11 (`maven.yuicompressor.preserveAllSemiColons`). |
+| `disableOptimizations` | `false` | Accepted and ignored by YUI Compressor 2.4.11 (`maven.yuicompressor.disableOptimizations`). |
 
-```xml
-<configuration>
-    <suffix>.compressed</suffix>
-</configuration>
-```
+## Examples
 
-#### Create GZIP Versions
-
-```xml
-<configuration>
-    <gzip>true</gzip>
-    <level>9</level>
-</configuration>
-```
-
-#### File Aggregation
+### Overwrite the source files
 
 ```xml
 <configuration>
-    <aggregations>
-        <aggregation>
-            <output>${project.build.directory}/all.js</output>
-            <includes>
-                <include>file1.js</include>
-                <include>file2.js</include>
-            </includes>
-            <insertNewLine>true</insertNewLine>
-        </aggregation>
-    </aggregations>
+  <nosuffix>true</nosuffix>
 </configuration>
 ```
 
-#### JSLint Validation
+### Write gzipped copies
 
 ```xml
-<execution>
+<configuration>
+  <gzip>true</gzip>
+  <level>9</level>
+</configuration>
+```
+
+### Restrict the files to compress
+
+```xml
+<configuration>
+  <includes>
+    <include>**/*.js</include>
+  </includes>
+  <excludes>
+    <exclude>**/vendor/**</exclude>
+    <exclude>**/*-min.js</exclude>
+  </excludes>
+</configuration>
+```
+
+### File aggregation
+
+```xml
+<configuration>
+  <aggregations>
+    <aggregation>
+      <output>${project.build.directory}/${project.build.finalName}/js/all.js</output>
+      <includes>
+        <include>**/jquery.js</include>
+        <include>**/app.js</include>
+      </includes>
+      <insertNewLine>true</insertNewLine>
+    </aggregation>
+  </aggregations>
+</configuration>
+```
+
+Each `aggregation` accepts `inputDir`, `output`, `includes`, `excludes`,
+`removeIncluded`, `insertNewLine`, `insertFileHeader`, `fixLastSemicolon` and
+`autoExcludeWildcards`. Includes are concatenated in the order they are listed.
+
+### JSLint validation
+
+```xml
+<executions>
+  <execution>
+    <id>jslint</id>
     <goals>
-        <goal>jslint</goal>
+      <goal>jslint</goal>
     </goals>
-</execution>
+  </execution>
+</executions>
 ```
 
-## Build Instructions
+## Migrating from net.alchim31.maven
 
-### Prerequisites
-
-- JDK 11 or later
-- Maven 3.8.8 or later
-
-### Build Commands
-
-```bash
-# Build the plugin
-mvn clean install
-
-# Run tests
-mvn test
-
-# Run integration tests
-mvn verify
-
-# Skip tests
-mvn install -DskipTests
-
-# Generate site documentation
-mvn site
-```
-
-## Migration from net.alchim31.maven
-
-If you're migrating from `net.alchim31.maven:yuicompressor-maven-plugin`, simply update your `pom.xml`:
+Change the `groupId` and `version`; the `artifactId`, goals and configuration
+parameters are unchanged.
 
 ```xml
-<!-- Old -->
+<!-- Before -->
 <groupId>net.alchim31.maven</groupId>
 <artifactId>yuicompressor-maven-plugin</artifactId>
 <version>1.5.1</version>
 
-<!-- New -->
+<!-- After -->
 <groupId>org.codelibs.maven</groupId>
 <artifactId>yuicompressor-maven-plugin</artifactId>
-<version>2.0.0-SNAPSHOT</version>
+<version>2.0.1</version>
 ```
 
-All configuration options remain compatible.
+## Building from Source
 
-## Issues
+```bash
+# Build, run unit tests and install into the local repository
+mvn clean install
 
-Found a bug or have a feature request? Please report it to the [issue tracker](https://github.com/codelibs/yuicompressor-maven-plugin/issues).
+# Unit tests only
+mvn test
+
+# Unit and integration tests (src/it, run with maven-invoker-plugin)
+mvn verify
+
+# Build without tests
+mvn install -DskipTests
+```
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Credits
-
-### Original Authors
-
-- [David Bernard](https://github.com/davidB) - Original author
-- [Piotr Kuczynski](https://github.com/pkuczynski) - Contributor
-
-### CodeLibs Maintainers
-
-- [Shinsuke Sugaya](https://github.com/shinsuke-sugaya) - Lead maintainer
+Bug reports and feature requests belong in the
+[issue tracker](https://github.com/codelibs/yuicompressor-maven-plugin/issues).
+Pull requests are welcome; please make sure `mvn verify` passes before opening one.
 
 ## License
 
-This project is released into the public domain under [The Unlicense](https://unlicense.org/).
+Released into the public domain under [The Unlicense](https://unlicense.org/).
+See [LICENSE.txt](LICENSE.txt).
 
-## Links
+## Credits
 
-- [CodeLibs Project](https://www.codelibs.org/)
-- [YUI Compressor](http://yui.github.io/yuicompressor/)
-- [Original Project](https://github.com/davidB/yuicompressor-maven-plugin)
+- [David Bernard](https://github.com/davidB) - original author
+- [Piotr Kuczynski](https://github.com/pkuczynski) - contributor
+- Maintained by the [CodeLibs Project](https://www.codelibs.org/)
